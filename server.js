@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
-// Endpoint to serve HTML with Bootstrap
+// Endpoint to serve HTML with Tailwind CSS
 app.get('/', (req, res) => {
   res.send(`
     <!DOCTYPE html>
@@ -18,28 +18,24 @@ app.get('/', (req, res) => {
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Gen AI Web App</title>
-      <!-- Include Bootstrap CSS -->
-      <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+      <!-- Include Tailwind CSS -->
+      <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
       <!-- Optional: Include custom CSS for your styles -->
       <link href="/styles/custom.css" rel="stylesheet">
     </head>
-    <body>
-      <div class="container">
-        <h1 class="mt-5">Generate Text with Gen AI</h1>
-        <form id="generateForm">
-          <div class="form-group">
-            <label for="prompt">Enter Prompt:</label>
-            <textarea class="form-control" id="prompt" name="prompt" rows="3" required></textarea>
+    <body class="bg-gray-100">
+      <div class="container mx-auto py-12">
+        <h1 class="text-3xl font-bold text-center mb-8">Generate Text with Gen AI</h1>
+        <form id="generateForm" class="max-w-md mx-auto">
+          <div class="mb-4">
+            <label for="prompt" class="block text-sm font-medium text-gray-700">Enter Prompt:</label>
+            <textarea class="form-textarea mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" id="prompt" name="prompt" rows="3" required></textarea>
           </div>
-          <button type="submit" class="btn btn-primary">Generate Text</button>
+          <button type="submit" class="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Generate Text</button>
         </form>
-        <div id="output" class="mt-3"></div>
+        <div id="output" class="mt-6 text-gray-800"></div>
       </div>
 
-      <!-- Include Bootstrap and custom JS -->
-      <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-      <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
-      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
       <!-- Include custom JavaScript -->
       <script src="/scripts/custom.js"></script>
     </body>

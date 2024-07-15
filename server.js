@@ -14,7 +14,7 @@ app.post('/generate-text', async (req, res) => {
 
   try {
     const response = await axios.post(
-      'https://api-inference.huggingface.co/models/gpt-3.5',
+      'https://api-inference.huggingface.co/models/gpt-3',
       {
         inputs: prompt,
       },

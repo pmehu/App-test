@@ -27,9 +27,6 @@ steps:
 
 logsBucket: 'app-demo-ai'
 
-options:
-  logging:  'CLOUD_LOGGING_ONLY'
-
 images:
   - 'us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app'
 

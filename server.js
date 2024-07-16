@@ -1,15 +1,28 @@
 const express = require('express');
 const axios = require('axios');
 const path = require('path');
+const basicAuth = require('basic-auth');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
+const USERNAME = process.env.BASIC_AUTH_USERNAME || 'admin';
+const PASSWORD = process.env.BASIC_AUTH_PASSWORD || 'admin';
+
+const auth = (req, res, next) => {
+  const user = basicAuth(req);
+  if (!user || user.name !== USERNAME || user.pass !== PASSWORD) {
+    res.set('WWW-Authenticate', 'Basic realm="401"');
+    res.status(401).send('Authentication required.');
+    return;
+  }
+  next();
+};
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
-app.post('/generate-text', async (req, res) => {
+app.post('/generate-text', auth, async (req, res) => {
   const prompt = req.body.prompt;
 
   try {
@@ -32,7 +45,7 @@ app.post('/generate-text', async (req, res) => {
   }
 });
 
-app.get('/', (req, res) => {
+app.get('/', auth, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 

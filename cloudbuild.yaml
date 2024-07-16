@@ -19,9 +19,10 @@ steps:
       '--platform', 'managed',
       '--region', 'us-central1',
       '--allow-unauthenticated',
-      '--set-env-vars', 'HUGGING_FACE_API_KEY=YOUR_HUGGING_FACE_API_KEY'
+      '--set-env-vars', 'HUGGING_FACE_API_KEY=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'
     ]
 
+   
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'gcr.io/my-money-428813/my-huggingface-web-app', '.']
 
@@ -29,6 +30,9 @@ logsBucket: 'app-demo-ai'
 
 images:
   - 'us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app'
+
+
+  
 
   # updating for test purpose
 

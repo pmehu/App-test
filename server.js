@@ -4,7 +4,7 @@ const path = require('path');
 const basicAuth = require('basic-auth');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080; // Default to 8080 for Cloud Run
 const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
 const USERNAME = process.env.BASIC_AUTH_USERNAME || 'admin';
 const PASSWORD = process.env.BASIC_AUTH_PASSWORD || 'admin';

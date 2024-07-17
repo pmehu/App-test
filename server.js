@@ -38,7 +38,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(express.json());
 
-app.post('/generate-text', auth, async (req, res) => {
+app.post('/', auth, async (req, res) => {
 
   const prompt = req.body.prompt;
 

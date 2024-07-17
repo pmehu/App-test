@@ -1,30 +1,23 @@
 const express = require('express');
 const axios = require('axios');
 const path = require('path');
-const basicAuth = require('basic-auth');
+const basicAuth = require('express-basic-auth'); // Use express-basic-auth middleware
 const app = express();
 
 const PORT = process.env.PORT || 8080; // Default to 8080 for Cloud Run
 const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
-const USERNAME = process.env.BASIC_AUTH_USERNAME || 'admin';
-const PASSWORD = process.env.BASIC_AUTH_PASSWORD || 'admin';
+
+const users = {}; // Define users for basic authentication
+users[process.env.BASIC_AUTH_USERNAME || 'admin'] = process.env.BASIC_AUTH_PASSWORD || 'admin';
 
 // Authentication middleware
-const auth = (req, res, next) => {
-  const user = basicAuth(req);
-  if (!user || user.name !== USERNAME || user.pass !== PASSWORD) {
-    res.set('WWW-Authenticate', 'Basic realm="401"');
-    res.status(401).send('Authentication required.');
-    return;
-  }
-  next();
-};
+app.use(basicAuth({
+  users,
+  challenge: true, // Respond with 401 Unauthorized immediately
+}));
 
 // Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
-
-// Apply authentication middleware globally to all routes
-app.use(auth);
 
 // Endpoint for generating text
 app.post('/generate-text', async (req, res) => {
@@ -35,7 +28,7 @@ app.post('/generate-text', async (req, res) => {
       { inputs: prompt },
       { headers: { Authorization: `Bearer ${HUGGING_FACE_API_KEY}` } }
     );
-    res.json({ text: response.data[0].generated_text });
+    res.json({ text: response.data.generated_text });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'An error occurred while generating text.' });

@@ -1,3 +1,4 @@
+[7:40 PM] Mehul Patel
 const express = require('express');
 
 const axios = require('axios');
@@ -54,6 +55,8 @@ const auth = (req, res, next) => {
 
   if (!user || !user.name || !user.pass) {
 
+    console.log('No user credentials provided.');
+
     res.set('WWW-Authenticate', 'Basic realm="401"');
 
     res.status(401).send('Authentication required.');
@@ -64,9 +67,13 @@ const auth = (req, res, next) => {
 
   const query = 'SELECT * FROM users WHERE username = ? AND password = ?';
 
+  console.log(`Authenticating user: ${user.name}`);
+
   connection.query(query, [user.name, user.pass], (error, results) => {
 
     if (error) {
+
+      console.error('Database query error:', error);
 
       res.set('WWW-Authenticate', 'Basic realm="401"');
 
@@ -78,9 +85,13 @@ const auth = (req, res, next) => {
 
     if (results.length > 0) {
 
+      console.log('Authentication successful.');
+
       next();
 
     } else {
+
+      console.log('Authentication failed.');
 
       res.set('WWW-Authenticate', 'Basic realm="401"');
 

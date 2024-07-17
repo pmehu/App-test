@@ -6,6 +6,10 @@ const mysql = require('mysql2/promise');
 const app = express();
 const PORT = process.env.PORT || 8080; // Default to 8080 for Cloud Run
 const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
+const DB_HOST = process.env.DB_HOST;
+const DB_USER = process.env.DB_USER;
+const DB_PASSWORD = process.env.DB_PASSWORD;
+const DB_NAME = process.env.DB_NAME;
 
 let USERNAME = '';
 let PASSWORD = '';
@@ -13,10 +17,10 @@ let PASSWORD = '';
 // Function to get credentials from MySQL
 async function getCredentials() {
   const connection = await mysql.createConnection({
-    host: '34.16.11.198',
-    user: 'root',
-    password: 'Sathi@1993',
-    database: 'demo-gen',
+    host: DB_HOST,
+    user: DB_USER,
+    password: DB_PASSWORD,
+    database: DB_NAME,
   });
 
   const [rows, fields] = await connection.execute('SELECT username, password FROM users WHERE id = 1');

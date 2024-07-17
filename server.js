@@ -46,7 +46,7 @@ app.post('/generate-text', auth, async (req, res) => {
 
     const response = await axios.post(
 
-      'https://api-inference.huggingface.co/models/gpt2',
+      'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3',
 
       {
 

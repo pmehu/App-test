@@ -1,4 +1,3 @@
-[7:14 PM] Mehul Patel
 const express = require('express');
 
 const axios = require('axios');

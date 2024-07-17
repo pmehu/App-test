@@ -1,61 +1,48 @@
 const express = require('express');
 const axios = require('axios');
 const path = require('path');
-const mysql = require('mysql');
 const basicAuth = require('basic-auth');
+const mysql = require('mysql');
 
 const app = express();
-const PORT = process.env.PORT || 8080; // Default to 8080 for Cloud Run
+const PORT = process.env.PORT || 8080;
 const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
 const DB_HOST = process.env.DB_HOST;
 const DB_USER = process.env.DB_USER;
 const DB_PASSWORD = process.env.DB_PASSWORD;
 const DB_NAME = process.env.DB_NAME;
 
-const db = mysql.createConnection({
+const connection = mysql.createConnection({
   host: DB_HOST,
   user: DB_USER,
   password: DB_PASSWORD,
   database: DB_NAME
 });
 
-let cachedCredentials = null;
+connection.connect(err => {
+  if (err) {
+    console.error('Database connection failed: ' + err.stack);
+    return;
+  }
+  console.log('Connected to database.');
+});
 
-const getCredentials = () => {
-  return new Promise((resolve, reject) => {
-    if (cachedCredentials) {
-      return resolve(cachedCredentials);
-    }
-
-    db.query('SELECT username, password FROM users WHERE id = 1', (err, results) => {
-      if (err) return reject(err);
-
-      if (results.length > 0) {
-        cachedCredentials = results[0];
-        resolve(cachedCredentials);
-      } else {
-        reject(new Error('No credentials found'));
-      }
-    });
-  });
-};
-
-const auth = async (req, res, next) => {
-  try {
-    const user = basicAuth(req);
-    const credentials = await getCredentials();
-
-    if (!user || user.name !== credentials.username || user.pass !== credentials.password) {
+const auth = (req, res, next) => {
+  const user = basicAuth(req);
+  const query = 'SELECT * FROM users WHERE username = ? AND password = ?';
+  connection.query(query, [user.name, user.pass], (error, results) => {
+    if (error) {
       res.set('WWW-Authenticate', 'Basic realm="401"');
       res.status(401).send('Authentication required.');
       return;
     }
-
-    next();
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Internal Server Error');
-  }
+    if (results.length > 0) {
+      next();
+    } else {
+      res.set('WWW-Authenticate', 'Basic realm="401"');
+      res.status(401).send('Authentication required.');
+    }
+  });
 };
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -68,7 +55,11 @@ app.post('/generate-text', auth, async (req, res) => {
     const response = await axios.post(
       'https://api-inference.huggingface.co/models/gpt2',
       { inputs: prompt },
-      { headers: { Authorization: `Bearer ${HUGGING_FACE_API_KEY}` } }
+      {
+        headers: {
+          Authorization: `Bearer ${HUGGING_FACE_API_KEY}`,
+        },
+      }
     );
 
     res.json({ text: response.data[0].generated_text });

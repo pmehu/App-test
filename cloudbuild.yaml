@@ -16,7 +16,12 @@ steps:
       '--platform', 'managed',
       '--region', 'us-central1',
       '--allow-unauthenticated',
-      '--set-env-vars', 'HUGGING_FACE_API_KEY=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'
+      '--set-env-vars',
+      'HUGGING_FACE_API_KEY=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',
+      'DB_HOST=34.16.11.198',
+      'DB_USER=root',
+      'DB_PASSWORD=Sathi@1993',
+      'DB_NAME=demo-gen'
     ]
 
 logsBucket: 'app-demo-ai'

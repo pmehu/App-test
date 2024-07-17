@@ -9,6 +9,7 @@ const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
 const USERNAME = process.env.BASIC_AUTH_USERNAME || 'admin';
 const PASSWORD = process.env.BASIC_AUTH_PASSWORD || 'admin';
 
+// Authentication middleware
 const auth = (req, res, next) => {
   const user = basicAuth(req);
   if (!user || user.name !== USERNAME || user.pass !== PASSWORD) {
@@ -19,10 +20,11 @@ const auth = (req, res, next) => {
   next();
 };
 
-// Apply authentication middleware to the root URL
-app.get('/', auth, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+// Serve static files from 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Parse JSON bodies for POST requests
+app.use(express.json());
 
 // Endpoint to generate text, no direct authentication
 app.post('/generate-text', async (req, res) => {
@@ -40,9 +42,12 @@ app.post('/generate-text', async (req, res) => {
   }
 });
 
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.json());
+// Root URL endpoint with authentication
+app.get('/', auth, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
+// Start server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

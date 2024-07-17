@@ -5,8 +5,7 @@ steps:
     args:
       - '-c'
       - |
-        echo "PORT=${_PORT}" > .env
-        echo "HUGGING_FACE_API_KEY=${_HUGGING_FACE_API_KEY}" >> .env
+        echo "HUGGING_FACE_API_KEY=${_HUGGING_FACE_API_KEY}" > .env
         echo "BASIC_AUTH_USERNAME=${_BASIC_AUTH_USERNAME}" >> .env
         echo "BASIC_AUTH_PASSWORD=${_BASIC_AUTH_PASSWORD}" >> .env
 
@@ -21,17 +20,16 @@ steps:
   # Deploy the Docker image to Google Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
-    args:
-      - 'run'
-      - 'deploy'
-      - 'my-huggingface-web-app'
-      - '--image=us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app'
-      - '--platform=managed'
-      - '--region=us-central1'
-      - '--allow-unauthenticated'
-      - '--set-env-vars=PORT=${_PORT},HUGGING_FACE_API_KEY=${_HUGGING_FACE_API_KEY},BASIC_AUTH_USERNAME=${_BASIC_AUTH_USERNAME},BASIC_AUTH_PASSWORD=${_BASIC_AUTH_PASSWORD}'
+    args: [
+      'run', 'deploy', 'my-huggingface-web-app',
+      '--image', 'us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app',
+      '--platform', 'managed',
+      '--region', 'us-central1',
+      '--allow-unauthenticated',
+      '--set-env-vars', 'HUGGING_FACE_API_KEY=${_HUGGING_FACE_API_KEY},BASIC_AUTH_USERNAME=${_BASIC_AUTH_USERNAME},BASIC_AUTH_PASSWORD=${_BASIC_AUTH_PASSWORD}'
+    ]
+
+logsBucket: 'app-demo-ai'
 
 images:
   - 'us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app'
-
-logsBucket: 'app-demo-ai'

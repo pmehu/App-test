@@ -19,16 +19,9 @@ const auth = (req, res, next) => {
   next();
 };
 
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.json());
-
-// Apply authentication middleware to all routes except /generate-text
-app.use((req, res, next) => {
-  if (req.path === '/generate-text') {
-    next();
-  } else {
-    auth(req, res, next);
-  }
+// Apply authentication middleware to the root URL
+app.get('/', auth, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Endpoint to generate text, no direct authentication
@@ -47,9 +40,8 @@ app.post('/generate-text', async (req, res) => {
   }
 });
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

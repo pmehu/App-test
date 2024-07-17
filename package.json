@@ -1,18 +1,17 @@
 {
   "name": "my-huggingface-web-app",
   "version": "1.0.0",
-  "description": "A web app using Hugging Face API",
-  "main": "server.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "description": "",
   "dependencies": {
     "axios": "^1.7.2",
     "express": "^4.19.2",
-    "basic-auth": "^2.0.1"
+    "mysql": "^2.18.1"  // Added MySQL package
   }
 }

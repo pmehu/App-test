@@ -64,6 +64,8 @@ const auth = async (req, res, next) => {
 
     if (rows.length === 0 || rows[0].password !== user.pass) {
 
+      res.set('WWW-Authenticate', 'Basic realm="401"');
+
       return res.status(401).send('Wrong username or password.');
 
     }
@@ -116,7 +118,7 @@ app.post('/generate-text', auth, async (req, res) => {
 
     );
 
-    if (response.data && response.data.length > 0) {
+    if (response.data && response.data.length > 0 && response.data[0].generated_text) {
 
       res.json({ text: response.data[0].generated_text });
 

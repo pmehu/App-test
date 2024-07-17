@@ -4,9 +4,7 @@ const axios = require('axios');
 
 const path = require('path');
 
-const basicAuth = require('basic-auth');
-
-const mysql = require('mysql');
+const { createPool } = require('mysql2/promise'); // Using mysql2/promise for async/await support
 
 const app = express();
 
@@ -20,9 +18,11 @@ const DB_USER = process.env.DB_USER;
 
 const DB_PASSWORD = process.env.DB_PASSWORD;
 
-const DB_NAME = process.env.DB_NAME;
+const DB_DATABASE = process.env.DB_DATABASE;
 
-const connection = mysql.createConnection({
+// Database connection pool setup
+
+const pool = createPool({
 
   host: DB_HOST,
 
@@ -30,75 +30,71 @@ const connection = mysql.createConnection({
 
   password: DB_PASSWORD,
 
-  database: DB_NAME
+  database: DB_DATABASE,
+
+  waitForConnections: true,
+
+  connectionLimit: 10,
+
+  queueLimit: 0
 
 });
 
-connection.connect(err => {
+const auth = async (req, res, next) => {
 
-  if (err) {
+  const credentials = basicAuth(req);
 
-    console.error('Database connection failed: ' + err.stack);
+  if (!credentials || !await isValidUser(credentials.name, credentials.pass)) {
+
+    res.set('WWW-Authenticate', 'Basic realm="401"');
+
+    res.status(401).send('Authentication required.');
 
     return;
 
   }
 
-  console.log('Connected to database.');
-
-});
-
-const auth = (req, res, next) => {
-
-  const user = basicAuth(req);
-
-  if (!user || !user.name || !user.pass) {
-
-    res.set('WWW-Authenticate', 'Basic realm="401"');
-
-    return res.status(401).send('Authentication required.');
-
-  }
-
-  const query = 'SELECT * FROM users WHERE username = ? AND password = ?';
-
-  connection.query(query, [user.name, user.pass], (error, results) => {
-
-    if (error) {
-
-      res.set('WWW-Authenticate', 'Basic realm="401"');
-
-      res.status(401).send('Authentication required.');
-
-      return;
-
-    }
-
-    if (results.length > 0) {
-
-      next();
-
-    } else {
-
-      res.set('WWW-Authenticate', 'Basic realm="401"');
-
-      res.status(401).send('Authentication required.');
-
-    }
-
-  });
+  next();
 
 };
 
-// Apply auth middleware to all routes
+// Function to validate user credentials against database
 
-app.use(auth);
+const isValidUser = async (username, password) => {
+
+  const connection = await pool.getConnection();
+
+  try {
+
+    const [rows] = await connection.execute(
+
+      'SELECT * FROM users WHERE username = ? AND password = ?',
+
+      [username, password]
+
+    );
+
+    return rows.length > 0;
+
+  } catch (error) {
+
+    console.error('Error validating user:', error);
+
+    return false;
+
+  } finally {
+
+    connection.release();
+
+  }
+
+};
 
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(express.json());
 
-app.post('/generate-text', async (req, res) => {
+app.post('/generate-text', auth, async (req, res) => {
 
   const prompt = req.body.prompt;
 
@@ -110,15 +106,7 @@ app.post('/generate-text', async (req, res) => {
 
       { inputs: prompt },
 
-      {
-
-        headers: {
-
-          Authorization: `Bearer ${HUGGING_FACE_API_KEY}`,
-
-        },
-
-      }
+      { headers: { Authorization: `Bearer ${HUGGING_FACE_API_KEY}` } }
 
     );
 
@@ -126,7 +114,7 @@ app.post('/generate-text', async (req, res) => {
 
   } catch (error) {
 
-    console.error(error);
+    console.error('Error generating text:', error);
 
     res.status(500).json({ error: 'An error occurred while generating text.' });
 
@@ -134,7 +122,7 @@ app.post('/generate-text', async (req, res) => {
 
 });
 
-app.get('/', (req, res) => {
+app.get('/', auth, (req, res) => {
 
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 

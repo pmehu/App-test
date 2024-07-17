@@ -1,7 +1,8 @@
 const express = require('express');
 const axios = require('axios');
 const path = require('path');
-const mysql = require('mysql2/promise');
+const mysql = require('mysql');
+const basicAuth = require('basic-auth');
 
 const app = express();
 const PORT = process.env.PORT || 8080; // Default to 8080 for Cloud Run
@@ -11,48 +12,50 @@ const DB_USER = process.env.DB_USER;
 const DB_PASSWORD = process.env.DB_PASSWORD;
 const DB_NAME = process.env.DB_NAME;
 
-let USERNAME = '';
-let PASSWORD = '';
+const db = mysql.createConnection({
+  host: DB_HOST,
+  user: DB_USER,
+  password: DB_PASSWORD,
+  database: DB_NAME
+});
 
-// Function to get credentials from MySQL
-async function getCredentials() {
-  const connection = await mysql.createConnection({
-    host: DB_HOST,
-    user: DB_USER,
-    password: DB_PASSWORD,
-    database: DB_NAME,
+let cachedCredentials = null;
+
+const getCredentials = () => {
+  return new Promise((resolve, reject) => {
+    if (cachedCredentials) {
+      return resolve(cachedCredentials);
+    }
+
+    db.query('SELECT username, password FROM users WHERE id = 1', (err, results) => {
+      if (err) return reject(err);
+
+      if (results.length > 0) {
+        cachedCredentials = results[0];
+        resolve(cachedCredentials);
+      } else {
+        reject(new Error('No credentials found'));
+      }
+    });
   });
+};
 
-  const [rows, fields] = await connection.execute('SELECT username, password FROM users WHERE id = 1');
-  if (rows.length > 0) {
-    USERNAME = rows[0].username;
-    PASSWORD = rows[0].password;
-  }
-
-  await connection.end();
-}
-
-// Middleware for basic authentication
 const auth = async (req, res, next) => {
-  await getCredentials();
-  const authHeader = req.headers['authorization'];
-  if (!authHeader) {
-    res.set('WWW-Authenticate', 'Basic realm="401"');
-    res.status(401).send('Authentication required.');
-    return;
+  try {
+    const user = basicAuth(req);
+    const credentials = await getCredentials();
+
+    if (!user || user.name !== credentials.username || user.pass !== credentials.password) {
+      res.set('WWW-Authenticate', 'Basic realm="401"');
+      res.status(401).send('Authentication required.');
+      return;
+    }
+
+    next();
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Internal Server Error');
   }
-
-  const base64Credentials = authHeader.split(' ')[1];
-  const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
-  const [username, password] = credentials.split(':');
-
-  if (username !== USERNAME || password !== PASSWORD) {
-    res.set('WWW-Authenticate', 'Basic realm="401"');
-    res.status(401).send('Authentication required.');
-    return;
-  }
-
-  next();
 };
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -64,14 +67,8 @@ app.post('/generate-text', auth, async (req, res) => {
   try {
     const response = await axios.post(
       'https://api-inference.huggingface.co/models/gpt2',
-      {
-        inputs: prompt,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${HUGGING_FACE_API_KEY}`,
-        },
-      }
+      { inputs: prompt },
+      { headers: { Authorization: `Bearer ${HUGGING_FACE_API_KEY}` } }
     );
 
     res.json({ text: response.data[0].generated_text });

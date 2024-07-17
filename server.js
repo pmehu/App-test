@@ -13,7 +13,7 @@ const auth = (req, res, next) => {
   const user = basicAuth(req);
 
   if (!user || user.name !== USERNAME || user.pass !== PASSWORD) {
-    res.set('WWW-Authenticate', 'Basic realm="401"');
+    res.set('WWW-Authenticate', 'Basic realm="Restricted area"');
     res.status(401).send('Authentication required.');
     return;
   }
@@ -22,11 +22,10 @@ const auth = (req, res, next) => {
   next();
 };
 
-app.use(auth);
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
-app.post('/generate-text', async (req, res) => {
+app.post('/generate-text', auth, async (req, res) => {
   const prompt = req.body.prompt;
 
   try {
@@ -43,7 +42,7 @@ app.post('/generate-text', async (req, res) => {
   }
 });
 
-app.get('/', (req, res) => {
+app.get('/', auth, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 

@@ -1,14 +1,4 @@
 steps:
-  # Load environment variables from .env file
-  - name: 'gcr.io/cloud-builders/gcloud'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        echo "HUGGING_FACE_API_KEY=${_HUGGING_FACE_API_KEY}" > .env
-        echo "BASIC_AUTH_USERNAME=${_BASIC_AUTH_USERNAME}" >> .env
-        echo "BASIC_AUTH_PASSWORD=${_BASIC_AUTH_PASSWORD}" >> .env
-
   # Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app', '.']

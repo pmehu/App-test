@@ -16,12 +16,10 @@ steps:
       '--platform', 'managed',
       '--region', 'us-central1',
       '--allow-unauthenticated',
-      '--set-env-vars', 'HUGGING_FACE_API_KEY=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,BASIC_AUTH_USERNAME=admin,BASIC_AUTH_PASSWORD=admin'
+      '--set-env-vars', 'HUGGING_FACE_API_KEY=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'
     ]
 
 logsBucket: 'app-demo-ai'
 
 images:
   - 'us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app'
-
-  # updating for test purpose

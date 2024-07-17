@@ -16,7 +16,7 @@ const USERNAME = process.env.BASIC_AUTH_USERNAME || 'admin';
 
 const PASSWORD = process.env.BASIC_AUTH_PASSWORD || 'admin';
 
-const auth = (req, res, next) => {
+const auth = async (req, res, next) => {
 
   const user = basicAuth(req);
 

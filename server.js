@@ -61,11 +61,9 @@ const auth = async (req, res, next) => {
 
     // Query to fetch user details based on username
 
-    const [rows] = await pool.execute('SELECT * FROM users WHERE username = ?', [user.name]);
+    const [rows, fields] = await pool.execute('SELECT * FROM users WHERE username = ?', [user.name]);
 
     if (rows.length === 0 || rows[0].password !== user.pass) {
-
-      res.set('WWW-Authenticate', 'Basic realm="401"');
 
       return res.status(401).send('Wrong username or password.');
 
@@ -119,15 +117,7 @@ app.post('/generate-text', auth, async (req, res) => {
 
     );
 
-    if (response.data && response.data.length > 0 && response.data[0].generated_text) {
-
-      res.json({ text: response.data[0].generated_text });
-
-    } else {
-
-      res.status(500).json({ error: 'Unexpected response format from Hugging Face API.' });
-
-    }
+    res.json({ text: response.data[0].generated_text });
 
   } catch (error) {
 

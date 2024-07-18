@@ -6,6 +6,8 @@ const path = require('path');
 
 const basicAuth = require('basic-auth');
 
+const mysql = require('mysql2');
+
 const app = express();
 
 const PORT = process.env.PORT || 8080; // Default to 8080 for Cloud Run
@@ -15,6 +17,24 @@ const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
 const USERNAME = process.env.BASIC_AUTH_USERNAME || 'admin';
 
 const PASSWORD = process.env.BASIC_AUTH_PASSWORD || 'admin';
+
+// MySQL connection configuration
+
+const dbConfig = {
+
+  host: process.env.DB_HOST,
+
+  user: process.env.DB_USER,
+
+  password: process.env.DB_PASSWORD,
+
+  database: process.env.DB_NAME,
+
+};
+
+const connection = mysql.createConnection(dbConfig);
+
+// Authentication middleware
 
 const auth = (req, res, next) => {
 
@@ -29,8 +49,6 @@ const auth = (req, res, next) => {
     return;
 
   }
-
-  // If authentication passes, continue to the next middleware or route handler
 
   next();
 
@@ -58,7 +76,27 @@ app.post('/generate-text', async (req, res) => {
 
     );
 
-    res.json({ text: response.data[0].generated_text });
+    const generatedText = response.data[0].generated_text;
+
+    // Insert prompt and generated text into the database
+
+    const query = 'INSERT INTO prompts (prompt, generated_text) VALUES (?, ?)';
+
+    connection.query(query, [prompt, generatedText], (err, results) => {
+
+      if (err) {
+
+        console.error(err);
+
+        res.status(500).json({ error: 'An error occurred while storing data.' });
+
+        return;
+
+      }
+
+      res.json({ text: generatedText });
+
+    });
 
   } catch (error) {
 

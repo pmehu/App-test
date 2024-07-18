@@ -7,15 +7,15 @@ steps:
       - |
         npm install @google-cloud/secret-manager
 
-  # Fetch secrets from Secret Manager
+  # Fetch secrets from Secret Manager and set environment variables
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        export BASIC_AUTH_USERNAME=$(gcloud secrets versions access latest --secret="BASIC_AUTH_USERNAME")
-        export BASIC_AUTH_PASSWORD=$(gcloud secrets versions access latest --secret="BASIC_AUTH_PASSWORD")
-        export HUGGING_FACE_API_KEY=$(gcloud secrets versions access latest --secret="HUGGING_FACE_API_KEY")
+        export BASIC_AUTH_USERNAME=$(gcloud secrets versions access latest --secret="BASIC_AUTH_USERNAME" --format="value(payload.data)")
+        export BASIC_AUTH_PASSWORD=$(gcloud secrets versions access latest --secret="BASIC_AUTH_PASSWORD" --format="value(payload.data)")
+        export HUGGING_FACE_API_KEY=$(gcloud secrets versions access latest --secret="HUGGING_FACE_API_KEY" --format="value(payload.data)")
 
   # Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'

@@ -3,15 +3,16 @@ const axios = require('axios');
 const path = require('path');
 const basicAuth = require('basic-auth');
 const app = express();
+require('dotenv').config(); // Load environment variables from .env file
 
 const PORT = process.env.PORT || 8080; // Default to 8080 for Cloud Run
 const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
-const USERNAME = process.env.BASIC_AUTH_USERNAME; // Fetch from environment variables
-const PASSWORD = process.env.BASIC_AUTH_PASSWORD; // Fetch from environment variables
+const USERNAME = process.env.BASIC_AUTH_USERNAME;
+const PASSWORD = process.env.BASIC_AUTH_PASSWORD;
 
-if (!USERNAME || !PASSWORD) {
-  console.error('Error: BASIC_AUTH_USERNAME and BASIC_AUTH_PASSWORD environment variables must be set.');
-  process.exit(1); // Exit if credentials are not set
+if (!HUGGING_FACE_API_KEY || !USERNAME || !PASSWORD) {
+  console.error('Error: One or more environment variables are not set.');
+  process.exit(1); // Exit if any required environment variable is missing
 }
 
 const auth = (req, res, next) => {

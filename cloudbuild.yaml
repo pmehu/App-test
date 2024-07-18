@@ -10,23 +10,16 @@ steps:
   # Deploy the Docker image to Google Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
-    args:
-      - 'run'
-      - 'deploy'
-      - 'my-huggingface-web-app'
-      - '--image'
-      - 'us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app'
-      - '--platform'
-      - 'managed'
-      - '--region'
-      - 'us-central1'
-      - '--allow-unauthenticated'
-      - '--set-env-vars'
-      - |
-        USERNAME_SECRET=projects/your-project-id/secrets/username_secret_name/versions/latest,
-        PASSWORD_SECRET=projects/your-project-id/secrets/password_secret_name/versions/latest,
-        HUGGING_FACE_API_KEY_SECRET=projects/your-project-id/secrets/hugging_face_api_key_secret_name/versions/latest
+    args: [
+      'run', 'deploy', 'my-huggingface-web-app',
+      '--image', 'us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app',
+      '--platform', 'managed',
+      '--region', 'us-central1',
+      '--allow-unauthenticated',
+      '--set-env-vars', 'HUGGING_FACE_API_KEY=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,DB_HOST=34.16.11.198,DB_USER=root,DB_PASSWORD=Sathi@1993,DB_NAME=demo-gen'
+    ]
 
 logsBucket: 'app-demo-ai'
+
 images:
   - 'us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app'

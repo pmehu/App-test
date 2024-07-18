@@ -1,17 +1,13 @@
 steps:
-  # Fetch secrets from Secret Manager and set them as substitutions
+  # Fetch secrets from Secret Manager and write to temporary files
   - name: 'gcr.io/cloud-builders/gcloud'
-    id: Fetch Secrets
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        export USERNAME=$(gcloud secrets versions access latest --secret=USERNAME)
-        export PASSWORD=$(gcloud secrets versions access latest --secret=PASSWORD)
-        export HUGGING_FACE_AUTH_KEY=$(gcloud secrets versions access latest --secret=HUGGING_FACE_AUTH_KEY)
-        echo "SUBSTITUTE_USERNAME=${USERNAME}" >> /workspace/env.list
-        echo "SUBSTITUTE_PASSWORD=${PASSWORD}" >> /workspace/env.list
-        echo "SUBSTITUTE_HUGGING_FACE_AUTH_KEY=${HUGGING_FACE_AUTH_KEY}" >> /workspace/env.list
+        gcloud secrets versions access latest --secret=USERNAME > /workspace/USERNAME
+        gcloud secrets versions access latest --secret=PASSWORD > /workspace/PASSWORD
+        gcloud secrets versions access latest --secret=HUGGING_FACE_AUTH_KEY > /workspace/HUGGING_FACE_AUTH_KEY
 
   # Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
@@ -27,13 +23,15 @@ steps:
     args:
       - '-c'
       - |
-        source /workspace/env.list
+        USERNAME=$(cat /workspace/USERNAME)
+        PASSWORD=$(cat /workspace/PASSWORD)
+        HUGGING_FACE_AUTH_KEY=$(cat /workspace/HUGGING_FACE_AUTH_KEY)
         gcloud run deploy my-huggingface-web-app \
           --image us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app \
           --platform managed \
           --region us-central1 \
           --allow-unauthenticated \
-          --set-env-vars USERNAME=${SUBSTITUTE_USERNAME},PASSWORD=${SUBSTITUTE_PASSWORD},HUGGING_FACE_AUTH_KEY=${SUBSTITUTE_HUGGING_FACE_AUTH_KEY}
+          --set-env-vars USERNAME=${USERNAME},PASSWORD=${PASSWORD},HUGGING_FACE_AUTH_KEY=${HUGGING_FACE_AUTH_KEY}
 
 logsBucket: 'app-demo-ai'
 

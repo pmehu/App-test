@@ -31,7 +31,7 @@ steps:
           --platform managed \
           --region us-central1 \
           --allow-unauthenticated \
-          --set-env-vars USERNAME=${USERNAME},PASSWORD=${PASSWORD},HUGGING_FACE_AUTH_KEY=${HUGGING_FACE_AUTH_KEY}
+          --set-env-vars USERNAME=$USERNAME,PASSWORD=$PASSWORD,HUGGING_FACE_AUTH_KEY=$HUGGING_FACE_AUTH_KEY
 
 logsBucket: 'app-demo-ai'
 

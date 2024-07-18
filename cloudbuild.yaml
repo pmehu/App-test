@@ -33,9 +33,7 @@ steps:
       '--image', 'us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app',
       '--platform', 'managed',
       '--region', 'us-central1',
-      '--allow-unauthenticated',
-      '--set-env-vars',
-      "BASIC_AUTH_USERNAME=${BASIC_AUTH_USERNAME},BASIC_AUTH_PASSWORD=${BASIC_AUTH_PASSWORD},HUGGING_FACE_API_KEY=${HUGGING_FACE_API_KEY},DB_HOST=34.16.11.198,DB_USER=root,DB_PASSWORD=Sathi@1993,DB_NAME=demo-gen"
+      '--allow-unauthenticated'
     ]
 
 logsBucket: 'app-demo-ai'

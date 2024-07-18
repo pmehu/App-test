@@ -1,15 +1,15 @@
 steps:
-  # Fetch secrets from Secret Manager and store them in a temporary file
+  # Fetch secrets from Secret Manager and store them in a temporary file in YAML format
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'sh'
     args:
       - '-c'
       - |
-        echo DB_HOST=$(gcloud secrets versions access latest --secret=DB_HOST) > /workspace/env.list
-        echo DB_USER=$(gcloud secrets versions access latest --secret=DB_USER) >> /workspace/env.list
-        echo DB_PASSWORD=$(gcloud secrets versions access latest --secret=DB_PASSWORD) >> /workspace/env.list
-        echo DB_NAME=$(gcloud secrets versions access latest --secret=DB_NAME) >> /workspace/env.list
-        echo HUGGING_FACE_API_KEY=$(gcloud secrets versions access latest --secret=HUGGING_FACE_API_KEY) >> /workspace/env.list
+        echo "HUGGING_FACE_API_KEY: $(gcloud secrets versions access latest --secret=HUGGING_FACE_API_KEY)" > /workspace/env.yaml
+        echo "DB_HOST: $(gcloud secrets versions access latest --secret=DB_HOST)" >> /workspace/env.yaml
+        echo "DB_USER: $(gcloud secrets versions access latest --secret=DB_USER)" >> /workspace/env.yaml
+        echo "DB_PASSWORD: $(gcloud secrets versions access latest --secret=DB_PASSWORD)" >> /workspace/env.yaml
+        echo "DB_NAME: $(gcloud secrets versions access latest --secret=DB_NAME)" >> /workspace/env.yaml
 
   # Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
@@ -30,7 +30,7 @@ steps:
           --platform managed \
           --region us-central1 \
           --allow-unauthenticated \
-          --env-vars-file /workspace/env.list
+          --env-vars-file /workspace/env.yaml
 
 logsBucket: 'app-demo-ai'
 

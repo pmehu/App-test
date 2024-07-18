@@ -26,15 +26,16 @@ steps:
 
   # Deploy the Docker image to Google Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: 'gcloud'
-    args: [
-      'run', 'deploy', 'my-huggingface-web-app',
-      '--image', 'us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app',
-      '--platform', 'managed',
-      '--region', 'us-central1',
-      '--allow-unauthenticated',
-      '--env-vars-file', '/workspace/env.list'
-    ]
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        gcloud run deploy my-huggingface-web-app \
+          --image us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app \
+          --platform managed \
+          --region us-central1 \
+          --allow-unauthenticated \
+          --set-env-vars-file /workspace/env.list
 
 logsBucket: 'app-demo-ai'
 

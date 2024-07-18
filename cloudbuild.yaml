@@ -1,13 +1,16 @@
 steps:
-  # Fetch secrets from Secret Manager and write to temporary files
+  # Fetch secrets from Secret Manager and write to environment variables
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        gcloud secrets versions access latest --secret=USERNAME > /workspace/USERNAME
-        gcloud secrets versions access latest --secret=PASSWORD > /workspace/PASSWORD
-        gcloud secrets versions access latest --secret=HUGGING_FACE_AUTH_KEY > /workspace/HUGGING_FACE_AUTH_KEY
+        USERNAME=$(gcloud secrets versions access latest --secret=USERNAME)
+        PASSWORD=$(gcloud secrets versions access latest --secret=PASSWORD)
+        HUGGING_FACE_AUTH_KEY=$(gcloud secrets versions access latest --secret=HUGGING_FACE_AUTH_KEY)
+        echo "USERNAME=$USERNAME" >> /workspace/.env
+        echo "PASSWORD=$PASSWORD" >> /workspace/.env
+        echo "HUGGING_FACE_AUTH_KEY=$HUGGING_FACE_AUTH_KEY" >> /workspace/.env
 
   # Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
@@ -19,18 +22,16 @@ steps:
 
   # Deploy the Docker image to Google Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: 'gcloud'
-    args: [
-      'run', 'deploy', 'my-huggingface-web-app',
-      '--image', 'us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app',
-      '--platform', 'managed',
-      '--region', 'us-central1',
-      '--allow-unauthenticated',
-      '--set-env-vars',
-        'USERNAME=$(cat /workspace/USERNAME),' +
-        'PASSWORD=$(cat /workspace/PASSWORD),' +
-        'HUGGING_FACE_AUTH_KEY=$(cat /workspace/HUGGING_FACE_AUTH_KEY)'
-    ]
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud run deploy my-huggingface-web-app \
+          --image us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app \
+          --platform managed \
+          --region us-central1 \
+          --allow-unauthenticated \
+          --set-env-vars USERNAME=$USERNAME,PASSWORD=$PASSWORD,HUGGING_FACE_AUTH_KEY=$HUGGING_FACE_AUTH_KEY
 
 logsBucket: 'app-demo-ai'
 

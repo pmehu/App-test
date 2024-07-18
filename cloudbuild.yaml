@@ -1,35 +1,36 @@
-
-
 steps:
- # Load secrets from Google Secret Manager and set them as environment variables
- - name: 'gcr.io/cloud-builders/gcloud'
-   entrypoint: 'bash'
-   args:
-     - '-c'
-     - |
-       export HUGGING_FACE_API_KEY=$(gcloud secrets versions access latest --secret="HUGGING_FACE_API_KEY")
-       export BASIC_AUTH_USERNAME=$(gcloud secrets versions access latest --secret="BASIC_AUTH_USERNAME")
-       export BASIC_AUTH_PASSWORD=$(gcloud secrets versions access latest --secret="BASIC_AUTH_PASSWORD")
-       # Build the Docker image with secrets as environment variables
-       docker build -t us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app \
-         --build-arg HUGGING_FACE_API_KEY=$HUGGING_FACE_API_KEY \
-         --build-arg BASIC_AUTH_USERNAME=$BASIC_AUTH_USERNAME \
-         --build-arg BASIC_AUTH_PASSWORD=$BASIC_AUTH_PASSWORD \
-         .
- # Push the Docker image to Google Artifact Registry
- - name: 'gcr.io/cloud-builders/docker'
-   args: ['push', 'us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app']
- # Deploy the Docker image to Google Cloud Run
- - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-   entrypoint: 'gcloud'
-   args: [
-     'run', 'deploy', 'my-huggingface-web-app',
-     '--image', 'us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app',
-     '--platform', 'managed',
-     '--region', 'us-central1',
-     '--allow-unauthenticated',
-     '--set-env-vars', 'HUGGING_FACE_API_KEY=$(gcloud secrets versions access latest --secret="HUGGING_FACE_API_KEY"),BASIC_AUTH_USERNAME=$(gcloud secrets versions access latest --secret="BASIC_AUTH_USERNAME"),BASIC_AUTH_PASSWORD=$(gcloud secrets versions access latest --secret="BASIC_AUTH_PASSWORD")'
-   ]
+  # Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app', '.']
+ 
+  # Push the Docker image to Google Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app']
+ 
+  # Deploy the Docker image to Google Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud run deploy my-huggingface-web-app \
+          --image us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app \
+          --platform managed \
+          --region us-central1 \
+          --allow-unauthenticated \
+          --set-env-vars USERNAME=$$USERNAME,PASSWORD=$$PASSWORD,HUGGING_FACE_API_KEY=$$HUGGING_FACE_API_KEY
+    secretEnv: ['USERNAME', 'PASSWORD', 'HUGGING_FACE_API_KEY']
+ 
+availableSecrets:
+  secretManager:
+  - versionName: projects/my-money-428813/secrets/USERNAME/versions/latest
+    env: 'USERNAME'
+  - versionName: projects/my-money-428813/secrets/PASSWORD/versions/latest
+    env: 'PASSWORD'
+  - versionName: projects/my-money-428813/secrets/HUGGING_FACE_API_KEY/versions/latest
+    env: 'HUGGING_FACE_API_KEY'
+ 
 logsBucket: 'app-demo-ai'
-
-  - 'us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app'
+ 
+images:
+  - 'us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app'

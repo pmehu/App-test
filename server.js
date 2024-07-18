@@ -2,7 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const path = require('path');
 const basicAuth = require('basic-auth');
-const mysql = require('mysql');
+const mysql = require('mysql2/promise');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -12,37 +12,36 @@ const DB_USER = process.env.DB_USER;
 const DB_PASSWORD = process.env.DB_PASSWORD;
 const DB_NAME = process.env.DB_NAME;
 
-const connection = mysql.createConnection({
+const pool = mysql.createPool({
   host: DB_HOST,
   user: DB_USER,
   password: DB_PASSWORD,
-  database: DB_NAME
+  database: DB_NAME,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
-connection.connect(err => {
-  if (err) {
-    console.error('Database connection failed: ' + err.stack);
-    return;
-  }
-  console.log('Connected to database.');
-});
-
-const auth = (req, res, next) => {
+const auth = async (req, res, next) => {
   const user = basicAuth(req);
-  const query = 'SELECT * FROM users WHERE username = ? AND password = ?';
-  connection.query(query, [user.name, user.pass], (error, results) => {
-    if (error) {
-      res.set('WWW-Authenticate', 'Basic realm="401"');
-      res.status(401).send('Authentication required.');
-      return;
+
+  if (!user || !user.name || !user.pass) {
+    res.set('WWW-Authenticate', 'Basic realm="401"');
+    return res.status(401).send('Authentication required.');
+  }
+
+  try {
+    const [rows, fields] = await pool.execute('SELECT * FROM users WHERE username = ?', [user.name]);
+    
+    if (rows.length === 0 || rows[0].password !== user.pass) {
+      return res.status(401).send('Wrong username or password.');
     }
-    if (results.length > 0) {
-      next();
-    } else {
-      res.set('WWW-Authenticate', 'Basic realm="401"');
-      res.status(401).send('Authentication required.');
-    }
-  });
+
+    next();
+  } catch (error) {
+    console.error('Error during authentication:', error);
+    res.status(500).send('Internal Server Error');
+  }
 };
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -64,7 +63,7 @@ app.post('/generate-text', auth, async (req, res) => {
 
     res.json({ text: response.data[0].generated_text });
   } catch (error) {
-    console.error(error);
+    console.error('Error generating text:', error);
     res.status(500).json({ error: 'An error occurred while generating text.' });
   }
 });

@@ -10,11 +10,16 @@ const PORT = process.env.PORT || 8080; // Default to 8080 for Cloud Run
 const secretManagerClient = new SecretManagerServiceClient();
 
 async function fetchSecret(secretName) {
-  const [version] = await secretManagerClient.accessSecretVersion({
-    name: `projects/${process.env.GOOGLE_CLOUD_PROJECT}/secrets/${secretName}/versions/latest`,
-  });
+  try {
+    const [version] = await secretManagerClient.accessSecretVersion({
+      name: `projects/${process.env.GOOGLE_CLOUD_PROJECT}/secrets/${secretName}/versions/latest`,
+    });
 
-  return version.payload.data.toString();
+    return version.payload.data.toString();
+  } catch (error) {
+    console.error(`Error accessing secret ${secretName}:`, error);
+    throw new Error('Failed to access secret');
+  }
 }
 
 // Middleware to fetch secrets and authenticate
@@ -38,7 +43,7 @@ const auth = async (req, res, next) => {
     // If authentication passes, continue to the next middleware or route handler
     next();
   } catch (error) {
-    console.error('Error fetching secrets:', error);
+    console.error('Error in authentication middleware:', error);
     res.status(500).send('Internal Server Error');
   }
 };
@@ -58,7 +63,7 @@ app.post('/generate-text', auth, async (req, res) => {
 
     res.json({ text: response.data[0].generated_text });
   } catch (error) {
-    console.error(error);
+    console.error('Error generating text:', error);
     res.status(500).json({ error: 'An error occurred while generating text.' });
   }
 });

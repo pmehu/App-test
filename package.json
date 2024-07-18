@@ -13,8 +13,7 @@
     "axios": "^1.7.2",
     "express": "^4.19.2",
     "basic-auth": "^2.0.1",
-    "mysql": "^2.18.1"
-    "@google-cloud/secret-manager": "^3.9.0"
+    "mysql": "^2.18.1",
+    "@google-cloud/secret-manager": "^4.0.0"
   }
 }
-

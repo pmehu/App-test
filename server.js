@@ -1,6 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const path = require('path');
+const basicAuth = require('basic-auth'); // Add this line to import basic-auth
 const { SecretManagerServiceClient } = require('@google-cloud/secret-manager');
 
 const app = express();

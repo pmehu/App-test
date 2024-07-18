@@ -80,7 +80,7 @@ app.post('/generate-text', async (req, res) => {
 
     // Insert prompt and generated text into the database
 
-    const query = 'INSERT INTO prompts (prompt, generated_text) VALUES (?, ?)';
+    const query = `INSERT INTO prompts (prompt, generated_text) VALUES (${inputs}, ${generatedText})`;
 
     connection.query(query, [prompt, generatedText], (err, results) => {
 

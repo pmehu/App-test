@@ -1,4 +1,14 @@
 steps:
+  # Fetch secrets from Secret Manager and write to temporary files
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud secrets versions access latest --secret=USERNAME > /workspace/USERNAME
+        gcloud secrets versions access latest --secret=PASSWORD > /workspace/PASSWORD
+        gcloud secrets versions access latest --secret=HUGGING_FACE_AUTH_KEY > /workspace/HUGGING_FACE_AUTH_KEY
+
   # Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app', '.']
@@ -16,8 +26,10 @@ steps:
       '--platform', 'managed',
       '--region', 'us-central1',
       '--allow-unauthenticated',
-      '--add-cloudsql-instances', 'my-money-428813:us-central1:mysql-db01', # Updated instance connection name
-      '--set-env-vars', 'HUGGING_FACE_API_KEY=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,DB_USER=root,DB_PASSWORD=Sathi@1993,DB_NAME=demo-gen,INSTANCE_CONNECTION_NAME=my-money-428813:us-central1:mysql-db01'
+      '--set-env-vars',
+        'USERNAME=$(cat /workspace/USERNAME),' +
+        'PASSWORD=$(cat /workspace/PASSWORD),' +
+        'HUGGING_FACE_AUTH_KEY=$(cat /workspace/HUGGING_FACE_AUTH_KEY)'
     ]
 
 logsBucket: 'app-demo-ai'

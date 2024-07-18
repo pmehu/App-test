@@ -16,7 +16,8 @@ steps:
       '--platform', 'managed',
       '--region', 'us-central1',
       '--allow-unauthenticated',
-      '--set-env-vars', 'HUGGING_FACE_API_KEY=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,DB_HOST=34.16.11.198,DB_USER=root,DB_PASSWORD=Sathi@1993,DB_NAME=demo-gen'
+      '--add-cloudsql-instances', 'my-money-428813:us-central1:mysql-db01', # Updated instance connection name
+      '--set-env-vars', 'HUGGING_FACE_API_KEY=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,DB_USER=root,DB_PASSWORD=Sathi@1993,DB_NAME=demo-gen,INSTANCE_CONNECTION_NAME=my-money-428813:us-central1:mysql-db01'
     ]
 
 logsBucket: 'app-demo-ai'

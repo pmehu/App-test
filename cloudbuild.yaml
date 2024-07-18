@@ -30,7 +30,7 @@ steps:
           --platform managed \
           --region us-central1 \
           --allow-unauthenticated \
-          --set-env-vars-file /workspace/env.list
+          --env-vars-file /workspace/env.list
 
 logsBucket: 'app-demo-ai'
 

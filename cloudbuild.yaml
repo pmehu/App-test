@@ -35,7 +35,7 @@ steps:
       '--region', 'us-central1',
       '--allow-unauthenticated',
       '--set-env-vars',
-      "HUGGING_FACE_API_KEY=${HUGGING_FACE_API_KEY},DB_HOST=34.16.11.198,DB_USER=root,DB_PASSWORD=Sathi@1993,DB_NAME=demo-gen"
+      "BASIC_AUTH_USERNAME=${BASIC_AUTH_USERNAME},BASIC_AUTH_PASSWORD=${BASIC_AUTH_PASSWORD},HUGGING_FACE_API_KEY=${HUGGING_FACE_API_KEY},DB_HOST=34.16.11.198,DB_USER=root,DB_PASSWORD=Sathi@1993,DB_NAME=demo-gen"
     ]
 
 logsBucket: 'app-demo-ai'

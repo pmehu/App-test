@@ -1,20 +1,15 @@
 steps:
-  # Fetch secrets from Secret Manager
+  # Fetch secrets from Secret Manager and store them in a temporary file
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'sh'
     args:
       - '-c'
       - |
-        DB_HOST=$(gcloud secrets versions access latest --secret=DB_HOST)
-        DB_USER=$(gcloud secrets versions access latest --secret=DB_USER)
-        DB_PASSWORD=$(gcloud secrets versions access latest --secret=DB_PASSWORD)
-        DB_NAME=$(gcloud secrets versions access latest --secret=DB_NAME)
-        HUGGING_FACE_API_KEY=$(gcloud secrets versions access latest --secret=HUGGING_FACE_API_KEY)
-        echo "DB_HOST=$DB_HOST" >> /workspace/env.list
-        echo "DB_USER=$DB_USER" >> /workspace/env.list
-        echo "DB_PASSWORD=$DB_PASSWORD" >> /workspace/env.list
-        echo "DB_NAME=$DB_NAME" >> /workspace/env.list
-        echo "HUGGING_FACE_API_KEY=$HUGGING_FACE_API_KEY" >> /workspace/env.list
+        echo DB_HOST=$(gcloud secrets versions access latest --secret=DB_HOST) > /workspace/env.list
+        echo DB_USER=$(gcloud secrets versions access latest --secret=DB_USER) >> /workspace/env.list
+        echo DB_PASSWORD=$(gcloud secrets versions access latest --secret=DB_PASSWORD) >> /workspace/env.list
+        echo DB_NAME=$(gcloud secrets versions access latest --secret=DB_NAME) >> /workspace/env.list
+        echo HUGGING_FACE_API_KEY=$(gcloud secrets versions access latest --secret=HUGGING_FACE_API_KEY) >> /workspace/env.list
 
   # Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'

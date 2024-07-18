@@ -16,9 +16,9 @@ steps:
       '--platform', 'managed',
       '--region', 'us-central1',
       '--allow-unauthenticated',
-      '--set-secrets', 'HUGGING_FACE_API_KEY=projects/my-money-428813/secrets/HUGGING_FACE_API_KEY/versions/latest',
-      '--set-secrets', 'BASIC_AUTH_USERNAME=projects/my-money-428813/secrets/BASIC_AUTH_USERNAME/versions/latest',
-      '--set-secrets', 'BASIC_AUTH_PASSWORD=projects/my-money-428813/secrets/BASIC_AUTH_PASSWORD/versions/latest'
+      '--set-secrets', 'HUGGING_FACE_API_KEY=projects/my-money-428813/secrets/hugging-face-api-key/versions/latest',
+      '--set-secrets', 'BASIC_AUTH_USERNAME=projects/my-money-428813/secrets/basic-auth-username/versions/latest',
+      '--set-secrets', 'BASIC_AUTH_PASSWORD=projects/my-money-428813/secrets/basic-auth-password/versions/latest'
     ]
 
 logsBucket: 'app-demo-ai'

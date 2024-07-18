@@ -1,17 +1,4 @@
 steps:
-  # Fetch secrets from Secret Manager and write to environment variables
-  - name: 'gcr.io/cloud-builders/gcloud'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        export USERNAME=$(gcloud secrets versions access latest --secret=USERNAME)
-        export PASSWORD=$(gcloud secrets versions access latest --secret=PASSWORD)
-        export HUGGING_FACE_AUTH_KEY=$(gcloud secrets versions access latest --secret=HUGGING_FACE_AUTH_KEY)
-        echo "USERNAME=${USERNAME}" >> /workspace/env.list
-        echo "PASSWORD=${PASSWORD}" >> /workspace/env.list
-        echo "HUGGING_FACE_AUTH_KEY=${HUGGING_FACE_AUTH_KEY}" >> /workspace/env.list
-
   # Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app', '.']
@@ -26,13 +13,22 @@ steps:
     args:
       - '-c'
       - |
-        source /workspace/env.list
         gcloud run deploy my-huggingface-web-app \
           --image us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app \
           --platform managed \
           --region us-central1 \
           --allow-unauthenticated \
-          --set-env-vars USERNAME=${USERNAME},PASSWORD=${PASSWORD},HUGGING_FACE_AUTH_KEY=${HUGGING_FACE_AUTH_KEY}
+          --set-env-vars USERNAME=$$USERNAME,PASSWORD=$$PASSWORD,HUGGING_FACE_AUTH_KEY=$$HUGGING_FACE_AUTH_KEY
+    secretEnv: ['USERNAME', 'PASSWORD', 'HUGGING_FACE_AUTH_KEY']
+
+availableSecrets:
+  secretManager:
+  - versionName: projects/$PROJECT_ID/secrets/USERNAME/versions/latest
+    env: 'USERNAME'
+  - versionName: projects/$PROJECT_ID/secrets/PASSWORD/versions/latest
+    env: 'PASSWORD'
+  - versionName: projects/$PROJECT_ID/secrets/HUGGING_FACE_AUTH_KEY/versions/latest
+    env: 'HUGGING_FACE_AUTH_KEY'
 
 logsBucket: 'app-demo-ai'
 

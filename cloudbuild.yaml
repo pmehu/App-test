@@ -1,22 +1,4 @@
 steps:
-  # Install @google-cloud/secret-manager package
-  - name: 'gcr.io/cloud-builders/npm'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        npm install @google-cloud/secret-manager
-
-  # Fetch secrets from Secret Manager and set environment variables
-  - name: 'gcr.io/cloud-builders/gcloud'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        export BASIC_AUTH_USERNAME=$(gcloud secrets versions access latest --secret="BASIC_AUTH_USERNAME" --format="value(payload.data)")
-        export BASIC_AUTH_PASSWORD=$(gcloud secrets versions access latest --secret="BASIC_AUTH_PASSWORD" --format="value(payload.data)")
-        export HUGGING_FACE_API_KEY=$(gcloud secrets versions access latest --secret="HUGGING_FACE_API_KEY" --format="value(payload.data)")
-
   # Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app', '.']
@@ -34,8 +16,7 @@ steps:
       '--platform', 'managed',
       '--region', 'us-central1',
       '--allow-unauthenticated',
-      '--set-env-vars',
-      "BASIC_AUTH_USERNAME=${BASIC_AUTH_USERNAME},BASIC_AUTH_PASSWORD=${BASIC_AUTH_PASSWORD},HUGGING_FACE_API_KEY=${HUGGING_FACE_API_KEY},DB_HOST=34.16.11.198,DB_USER=root,DB_PASSWORD=Sathi@1993,DB_NAME=demo-gen"
+      '--set-env-vars', 'HUGGING_FACE_API_KEY=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,DB_HOST=34.16.11.198,DB_USER=root,DB_PASSWORD=Sathi@1993,DB_NAME=demo-gen'
     ]
 
 logsBucket: 'app-demo-ai'

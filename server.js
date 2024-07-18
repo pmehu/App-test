@@ -1,7 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const path = require('path');
-const basicAuth = require('basic-auth'); // Add this line to import basic-auth
+const basicAuth = require('basic-auth');
 const { SecretManagerServiceClient } = require('@google-cloud/secret-manager');
 
 const app = express();
@@ -32,8 +32,6 @@ async function fetchSecrets() {
   HUGGING_FACE_API_KEY = await accessSecretVersion(HUGGING_FACE_API_KEY_SECRET);
 }
 
-fetchSecrets().catch(console.error);
-
 // Authentication middleware
 const auth = (req, res, next) => {
   const user = basicAuth(req);
@@ -46,29 +44,39 @@ const auth = (req, res, next) => {
   next();
 };
 
-app.use(auth); // Apply authentication middleware globally
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.json());
-
-app.post('/generate-text', async (req, res) => {
-  const prompt = req.body.prompt;
+async function startServer() {
   try {
-    const response = await axios.post(
-      'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3',
-      { inputs: prompt },
-      { headers: { Authorization: `Bearer ${HUGGING_FACE_API_KEY}` } }
-    );
-    res.json({ text: response.data[0].generated_text });
+    await fetchSecrets();
+
+    app.use(auth); // Apply authentication middleware globally
+    app.use(express.static(path.join(__dirname, 'public')));
+    app.use(express.json());
+
+    app.post('/generate-text', async (req, res) => {
+      const prompt = req.body.prompt;
+      try {
+        const response = await axios.post(
+          'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3',
+          { inputs: prompt },
+          { headers: { Authorization: `Bearer ${HUGGING_FACE_API_KEY}` } }
+        );
+        res.json({ text: response.data[0].generated_text });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred while generating text.' });
+      }
+    });
+
+    app.get('/', (req, res) => {
+      res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    });
+
+    app.listen(PORT, () => {
+      console.log(`Server is running on http://localhost:${PORT}`);
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'An error occurred while generating text.' });
+    console.error('Failed to fetch secrets:', error);
   }
-});
+}
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+startServer();

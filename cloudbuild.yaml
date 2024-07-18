@@ -1,4 +1,21 @@
 steps:
+  # Fetch secrets from Secret Manager
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        DB_HOST=$(gcloud secrets versions access latest --secret=DB_HOST)
+        DB_USER=$(gcloud secrets versions access latest --secret=DB_USER)
+        DB_PASSWORD=$(gcloud secrets versions access latest --secret=DB_PASSWORD)
+        DB_NAME=$(gcloud secrets versions access latest --secret=DB_NAME)
+        HUGGING_FACE_API_KEY=$(gcloud secrets versions access latest --secret=HUGGING_FACE_API_KEY)
+        echo "DB_HOST=$DB_HOST" >> /workspace/env.list
+        echo "DB_USER=$DB_USER" >> /workspace/env.list
+        echo "DB_PASSWORD=$DB_PASSWORD" >> /workspace/env.list
+        echo "DB_NAME=$DB_NAME" >> /workspace/env.list
+        echo "HUGGING_FACE_API_KEY=$HUGGING_FACE_API_KEY" >> /workspace/env.list
+
   # Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app', '.']
@@ -16,7 +33,7 @@ steps:
       '--platform', 'managed',
       '--region', 'us-central1',
       '--allow-unauthenticated',
-      '--set-env-vars', 'HUGGING_FACE_API_KEY=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,DB_HOST=34.16.11.198,DB_USER=root,DB_PASSWORD=Sathi@1993,DB_NAME=demo-gen'
+      '--env-vars-file', '/workspace/env.list'
     ]
 
 logsBucket: 'app-demo-ai'

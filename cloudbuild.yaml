@@ -16,12 +16,11 @@ steps:
       '--platform', 'managed',
       '--region', 'us-central1',
       '--allow-unauthenticated',
-      '--set-secrets', 'HUGGING_FACE_API_KEY=projects/my-money-428813/secrets/my-hugging-face-api-key/versions/latest',
-      '--set-secrets', 'BASIC_AUTH_USERNAME=projects/1043160856035/secrets/BASIC_AUTH_USERNAME/versions/latest',
-      '--set-secrets', 'BASIC_AUTH_PASSWORD=projects/1043160856035/secrets/BASIC_AUTH_PASSWORD/versions/latest'
+      '--set-env-vars', 'HUGGING_FACE_API_KEY=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,DB_HOST=34.16.11.198,DB_USER=root,DB_PASSWORD=Sathi@1993,DB_NAME=demo-gen'
     ]
 
 logsBucket: 'app-demo-ai'
 
 images:
   - 'us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app'
+ 

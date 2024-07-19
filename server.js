@@ -11,11 +11,7 @@ const PORT = process.env.PORT || 8080;
 const client = new SecretManagerServiceClient();
 
 async function accessSecretVersion(name) {
-  const [version] = await client.accessSecretVersion({
-    name: name,
-  });
-
-  // Extract the secret payload
+  const [version] = await client.accessSecretVersion({ name });
   return version.payload.data.toString('utf8');
 }
 

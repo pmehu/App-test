@@ -1,41 +1,26 @@
 steps:
-
   # Build the Docker image
-
   - name: 'gcr.io/cloud-builders/docker'
-
     args: ['build', '-t', 'us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app', '.']
 
   # Push the Docker image to Google Artifact Registry
-
   - name: 'gcr.io/cloud-builders/docker'
-
     args: ['push', 'us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app']
 
   # Deploy the Docker image to Google Cloud Run
-
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-
-    entrypoint: 'gcloud'
-
-    args: [
-
-      'run', 'deploy', 'my-huggingface-web-app',
-
-      '--image', 'us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app',
-
-      '--platform', 'managed',
-
-      '--region', 'us-central1',
-
-      '--allow-unauthenticated',
-
-      '--set-env-vars', 'HUGGING_FACE_API_KEY=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,DB_HOST=34.16.11.198,DB_USER=root,DB_PASSWORD=Sathi@1993,DB_NAME=demo-gen'
-
-    ]
+    entrypoint: 'bash'
+    args:
+      - -c
+      - |
+        gcloud run deploy my-huggingface-web-app \
+          --image us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app \
+          --platform managed \
+          --region us-central1 \
+          --allow-unauthenticated \
+          --set-secrets HUGGING_FACE_API_KEY=projects/my-money-428813/secrets/HUGGING_FACE_API_KEY:latest,DB_HOST=projects/my-money-428813/secrets/DB_HOST:latest,DB_USER=projects/my-money-428813/secrets/DB_USER:latest,DB_PASSWORD=projects/my-money-428813/secrets/DB_PASSWORD:latest,DB_NAME=projects/my-money-428813/secrets/DB_NAME:latest,BASIC_AUTH_USERNAME=projects/my-money-428813/secrets/BASIC_AUTH_USERNAME:latest,BASIC_AUTH_PASSWORD=projects/my-money-428813/secrets/BASIC_AUTH_PASSWORD:latest
 
 logsBucket: 'app-demo-ai'
 
 images:
-
   - 'us-central1-docker.pkg.dev/my-money-428813/my-ai-app-test/my-huggingface-web-app'

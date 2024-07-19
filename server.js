@@ -2,86 +2,63 @@ const express = require('express');
 const axios = require('axios');
 const path = require('path');
 const basicAuth = require('basic-auth');
-const { SecretManagerServiceClient } = require('@google-cloud/secret-manager');
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 8080; // Default to 8080 for Cloud Run
 
-// Initialize Secret Manager client
-const client = new SecretManagerServiceClient();
+// Directly use environment variables set by Cloud Run
+const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
+const BASIC_AUTH_USERNAME = process.env.BASIC_AUTH_USERNAME;
+const BASIC_AUTH_PASSWORD = process.env.BASIC_AUTH_PASSWORD;
 
-async function accessSecretVersion(name) {
-  const [version] = await client.accessSecretVersion({ name });
-  return version.payload.data.toString('utf8');
+// Ensure that all required environment variables are set
+if (!HUGGING_FACE_API_KEY || !BASIC_AUTH_USERNAME || !BASIC_AUTH_PASSWORD) {
+  console.error('Missing required environment variables.');
+  process.exit(1);
 }
 
-// Fetch secrets from Secret Manager
-const USERNAME_SECRET = process.env.USERNAME_SECRET;
-const PASSWORD_SECRET = process.env.PASSWORD_SECRET;
-const HUGGING_FACE_API_KEY_SECRET = process.env.HUGGING_FACE_API_KEY_SECRET;
-
-let USERNAME, PASSWORD, HUGGING_FACE_API_KEY;
-
-async function fetchSecrets() {
-  console.log('Fetching secrets...');
-  try {
-    USERNAME = await accessSecretVersion(USERNAME_SECRET);
-    console.log('Fetched USERNAME');
-    PASSWORD = await accessSecretVersion(PASSWORD_SECRET);
-    console.log('Fetched PASSWORD');
-    HUGGING_FACE_API_KEY = await accessSecretVersion(HUGGING_FACE_API_KEY_SECRET);
-    console.log('Fetched HUGGING_FACE_API_KEY');
-  } catch (error) {
-    console.error('Error fetching secrets:', error);
-    throw error;
-  }
-}
-
-// Authentication middleware
 const auth = (req, res, next) => {
   const user = basicAuth(req);
-  if (!user || user.name !== USERNAME || user.pass !== PASSWORD) {
+
+  if (!user || user.name !== BASIC_AUTH_USERNAME || user.pass !== BASIC_AUTH_PASSWORD) {
     res.set('WWW-Authenticate', 'Basic realm="Restricted area"');
+    res.set('Cache-Control', 'no-store'); // Prevent caching of credentials
     res.status(401).send('Authentication required.');
     return;
   }
+
+  // Prevent caching of authenticated requests
+  res.set('Cache-Control', 'no-store');
+
+  // If authentication passes, continue to the next middleware or route handler
   next();
 };
 
-async function startServer() {
+app.use(auth); // Apply authentication middleware globally
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
+
+app.post('/generate-text', async (req, res) => {
+  const prompt = req.body.prompt;
+
   try {
-    await fetchSecrets();
+    const response = await axios.post(
+      'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3',
+      { inputs: prompt },
+      { headers: { Authorization: `Bearer ${HUGGING_FACE_API_KEY}` } }
+    );
 
-    app.use(auth);
-    app.use(express.static(path.join(__dirname, 'public')));
-    app.use(express.json());
-
-    app.post('/generate-text', async (req, res) => {
-      const prompt = req.body.prompt;
-      try {
-        const response = await axios.post(
-          'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3',
-          { inputs: prompt },
-          { headers: { Authorization: `Bearer ${HUGGING_FACE_API_KEY}` } }
-        );
-        res.json({ text: response.data[0].generated_text });
-      } catch (error) {
-        console.error('Error generating text:', error);
-        res.status(500).json({ error: 'An error occurred while generating text.' });
-      }
-    });
-
-    app.get('/', (req, res) => {
-      res.sendFile(path.join(__dirname, 'public', 'index.html'));
-    });
-
-    app.listen(PORT, () => {
-      console.log(`Server is running on http://localhost:${PORT}`);
-    });
+    res.json({ text: response.data[0].generated_text });
   } catch (error) {
-    console.error('Failed to fetch secrets or start server:', error);
-    process.exit(1); // Exit the process with an error code
+    console.error(error);
+    res.status(500).json({ error: 'An error occurred while generating text.' });
   }
-}
+});
 
-startServer();
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});

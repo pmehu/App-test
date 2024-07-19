@@ -8,14 +8,8 @@ const PORT = process.env.PORT || 8080; // Default to 8080 for Cloud Run
 
 // Directly use environment variables set by Cloud Run
 const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
-const BASIC_AUTH_USERNAME = process.env.BASIC_AUTH_USERNAME;
-const BASIC_AUTH_PASSWORD = process.env.BASIC_AUTH_PASSWORD;
-
-// Ensure that all required environment variables are set
-if (!HUGGING_FACE_API_KEY || !BASIC_AUTH_USERNAME || !BASIC_AUTH_PASSWORD) {
-  console.error('Missing required environment variables.');
-  process.exit(1);
-}
+const BASIC_AUTH_USERNAME = process.env.BASIC_AUTH_USERNAME || 'admin';
+const BASIC_AUTH_PASSWORD = process.env.BASIC_AUTH_PASSWORD || 'admin';
 
 const auth = (req, res, next) => {
   const user = basicAuth(req);

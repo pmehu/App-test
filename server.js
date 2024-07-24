@@ -1,4 +1,3 @@
-
 const express = require('express');
 
 const axios = require('axios');
@@ -11,9 +10,7 @@ const app = express();
 
 const PORT = process.env.PORT || 8080; // Default to 8080 for Cloud Run
 
-const HUB_BASE_URL = process.env.HUB_BASE_URL;
-
-const HUB_API_KEY = process.env.HUB_API_KEY;
+const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
 
 const USERNAME = process.env.BASIC_AUTH_USERNAME || 'admin';
 
@@ -53,11 +50,11 @@ app.post('/generate-text', async (req, res) => {
 
     const response = await axios.post(
 
-      `${HUB_BASE_URL}/gpt-35-turbo`, 
+      'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3',
 
       { inputs: prompt },
 
-      { headers: { Authorization: `Bearer ${HUB_API_KEY}` } }
+      { headers: { Authorization: `Bearer ${HUGGING_FACE_API_KEY}` } }
 
     );
 

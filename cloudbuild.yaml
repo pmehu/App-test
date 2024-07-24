@@ -16,7 +16,7 @@ steps:
       '--platform', 'managed',
       '--region', 'us-central1',
       '--allow-unauthenticated',
-      '--set-env-vars', 'HUGGING_FACE_API_KEY=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,DB_HOST=34.16.11.198,DB_USER=root,DB_PASSWORD=Sathi@1993,DB_NAME=demo-gen'
+      '--set-env-vars', 'HUB_BASE_URL=https://hub-proxy-service-2fhjcmydtq-uk.a.run.app, HUB_API_KEY=sk-89ffbd0bf5004c769a5806, HUGGING_FACE_API_KEY=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,DB_HOST=34.16.11.198,DB_USER=root,DB_PASSWORD=Sathi@1993,DB_NAME=demo-gen'
     ]
 
 logsBucket: 'app-demo-ai'
